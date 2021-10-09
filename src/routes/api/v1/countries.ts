@@ -3,17 +3,56 @@ import http from "http";
 
 const routes = express.Router();
 
-routes.get("/get-countries", (_, res) => {
+const URL_API = "http://api.countrylayer.com/v2";
+
+routes.post("/country", (req, res) => {
   http.get(
-    `http://api.countrylayer.com/v2/all?access_key=${process.env.ACCESS_TOKEN}
-  `,
+    `${URL_API}/name/${req}?access_key=${process.env.ACCESS_TOKEN}&FullText=true`,
     (resp) => {
       let data = "";
       resp.on("data", (chunk) => {
         data += chunk;
       });
       resp.on("end", () => {
-        res.send(JSON.parse(data));
+        const parseData = JSON.parse(data);
+        res.send(parseData);
+      });
+    }
+  );
+});
+
+routes.get("/countries", (req, res) => {
+  http.get(
+    `${URL_API}/all?access_key=${process.env.ACCESS_TOKEN}&FullText=true`,
+    (resp) => {
+      let data = "";
+      resp.on("data", (chunk) => {
+        data += chunk;
+      });
+      resp.on("end", () => {
+        const parseData = JSON.parse(data);
+        res.send(parseData);
+      });
+    }
+  );
+});
+
+routes.post("/countries", (req, res) => {
+  const { countryQuery } = req.body;
+  http.get(
+    `${URL_API}/all?access_key=${process.env.ACCESS_TOKEN}&FullText=true`,
+    (resp) => {
+      let data = "";
+      resp.on("data", (chunk) => {
+        data += chunk;
+      });
+      resp.on("end", () => {
+        const parseData = JSON.parse(data);
+        const filterCountries = parseData.filter(
+          (country: { name: string }) =>
+            country.name.toLocaleLowerCase().indexOf(countryQuery) !== -1
+        );
+        res.send(filterCountries);
       });
     }
   );
