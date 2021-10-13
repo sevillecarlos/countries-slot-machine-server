@@ -1,18 +1,14 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { URL_API } from "../config";
 import https from "https";
 
 // find a country from a given name
-const findCountryByName = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const findCountryByName = async (req: Request, res: Response) => {
   try {
     // get the id from param
-    const countryName: string = req.params.id;
+    const countryQueryName: string = req.params.id;
 
-    https.get(`${URL_API}/name/${countryName}`, (resp: any) => {
+    https.get(`${URL_API}/name/${countryQueryName}`, (resp: any) => {
       let data: string;
       resp.on("data", (chunk: string) => {
         data += chunk;
@@ -36,7 +32,12 @@ const findCountryByName = async (
             flag,
           });
         } else {
-          res.json({ notFoundMsg: "The country don't exist" });
+          res.json({
+            error: {
+              code: 500,
+              reason: "The country don't exist",
+            },
+          });
         }
       });
     });
@@ -45,11 +46,7 @@ const findCountryByName = async (
   }
 };
 
-const getAllCountries = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const getAllCountries = async (_: Request, res: Response) => {
   try {
     https.get(`${URL_API}/all/`, (resp) => {
       let data: string;
@@ -69,16 +66,18 @@ const getAllCountries = async (
       });
     });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: {
+        code: 500,
+        reason: "The country don't exist",
+      },
+    });
   }
 };
 
-const getListCountriesByName = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { countryQuery } = req.body;
+const getListCountriesByName = (req: Request, res: Response) => {
+  const countryQuery: string = req.body.countryQuery;
+
   https.get(`${URL_API}/all`, (resp) => {
     let data: string;
     resp.on("data", (chunk) => {
@@ -106,4 +105,4 @@ const getListCountriesByName = (
   });
 };
 
-export default { findCountryByName, getAllCountries };
+export default { findCountryByName, getAllCountries, getListCountriesByName };

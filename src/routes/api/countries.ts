@@ -7,9 +7,9 @@ const router = express.Router();
 
 // get an specific country by given name
 router.get("/countries/:id", controller.findCountryByName);
-// get all countries 
+// get all countries
 router.get("/countries", controller.getAllCountries);
 // get a list of countries by given name
-router.post("/countries", controller.getAllCountries);
+router.post("/countries", controller.getListCountriesByName);
 
 export default router;
