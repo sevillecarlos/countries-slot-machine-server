@@ -3,7 +3,11 @@ import { URL_API } from "../config";
 import https from "https";
 
 // find a country from a given name
-const findCountry = async (req: Request, res: Response, next: NextFunction) => {
+const findCountryByName = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // get the id from param
     const countryName: string = req.params.id;
@@ -69,6 +73,37 @@ const getAllCountries = async (
   }
 };
 
-const f;
+const getListCountriesByName = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { countryQuery } = req.body;
+  https.get(`${URL_API}/all`, (resp) => {
+    let data: string;
+    resp.on("data", (chunk) => {
+      data += chunk;
+    });
+    resp.on("end", () => {
+      const parseData = JSON.parse(data);
 
-export default { findCountry, getAllCountries };
+      const filterCountries = parseData.filter(
+        (country: { name: { common: string } }) =>
+          country.name.common.toLowerCase().indexOf(countryQuery) !== -1
+      );
+      if (filterCountries.length !== 0) {
+        const infoCountries = filterCountries.map((country: any) => ({
+          countryName: country.name.common,
+          capital: country.capital,
+          region: country.region,
+          flag: country.flag,
+        }));
+        res.json(infoCountries);
+      } else {
+        res.json({ notFoundMsg: "Countries don't exist" });
+      }
+    });
+  });
+};
+
+export default { findCountryByName, getAllCountries };
