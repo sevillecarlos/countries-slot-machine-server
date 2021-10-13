@@ -1,13 +1,18 @@
 import { Request, Response } from "express";
+import { validationResult } from "express-validator";
 import { URL_API } from "../config";
+import { Countries } from "../interfaces/countries.interface";
 import https from "https";
 
 // find a country from a given name
 const findCountryByName = async (req: Request, res: Response) => {
+  const countryQueryName: string = req.params.id;
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
     // get the id from param
-    const countryQueryName: string = req.params.id;
-
     https.get(`${URL_API}/name/${countryQueryName}`, (resp: any) => {
       let data: string = "";
       resp.on("data", (chunk: string) => {
@@ -15,9 +20,8 @@ const findCountryByName = async (req: Request, res: Response) => {
       });
       resp.on("end", () => {
         const parseData = JSON.parse(data);
-
         if (parseData?.status !== 404) {
-          const [country] = parseData;
+          const [country]: [Countries] = parseData;
           const {
             name: { common: countryName },
             capital,
@@ -32,7 +36,7 @@ const findCountryByName = async (req: Request, res: Response) => {
             flag,
           });
         } else {
-          throw "The country don't exist";
+          throw new Error("The country don't exist");
         }
       });
     });
@@ -50,7 +54,7 @@ const getAllCountries = async (_: Request, res: Response) => {
         data += chunk;
       });
       resp.on("end", () => {
-        const parseData = JSON.parse(data);
+        const parseData: [Countries] = JSON.parse(data);
         const infoCountries = parseData.map((country: any) => ({
           countryName: country.name.common,
           capital: country.capital,
@@ -67,6 +71,11 @@ const getAllCountries = async (_: Request, res: Response) => {
 
 const getListCountriesByName = (req: Request, res: Response) => {
   const countryQuery: string = req.body.countryQuery;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
     https.get(`${URL_API}/all`, (resp) => {
@@ -75,7 +84,7 @@ const getListCountriesByName = (req: Request, res: Response) => {
         data += chunk;
       });
       resp.on("end", () => {
-        const parseData = JSON.parse(data);
+        const parseData: [Countries] = JSON.parse(data);
 
         const filterCountries = parseData.filter(
           (country: { name: { common: string } }) =>
@@ -90,7 +99,7 @@ const getListCountriesByName = (req: Request, res: Response) => {
           }));
           res.json(infoCountries);
         } else {
-          throw "The country don't exist";
+          throw new Error("The country don't exist");
         }
       });
     });
