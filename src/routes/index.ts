@@ -1,9 +1,9 @@
 import express from "express";
-import countriesRoute from "./routes/api/v1/countries";
+import countriesRoute from "./api/countries";
 import dotenv from "dotenv";
 import cors from "cors";
 
-dotenv.config({ path: __dirname + "/.env" });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
