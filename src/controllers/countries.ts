@@ -32,7 +32,7 @@ const findCountryByName = async (req: Request, res: Response) => {
             flag,
           });
         } else {
-          throw new Error("The country don't exist");
+          throw "The country don't exist";
         }
       });
     });
@@ -90,7 +90,7 @@ const getListCountriesByName = (req: Request, res: Response) => {
           }));
           res.json(infoCountries);
         } else {
-          throw new Error("The country don't exist");
+          throw "The country don't exist";
         }
       });
     });
