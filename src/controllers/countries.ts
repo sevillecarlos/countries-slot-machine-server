@@ -31,9 +31,8 @@ const findCountryByName = async (req: Request, res: Response) => {
 
         // parse to JSON the string data
         const parseData: [Countries] = JSON.parse(data);
-        console.log(parseData);
 
-        const [country]: [Countries] = parseData;
+        const [country] = parseData;
         // parse the country data to be send
         const {
           name: { common: countryName },
