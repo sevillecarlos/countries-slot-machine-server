@@ -22,36 +22,32 @@ const findCountryByName = async (req: Request, res: Response) => {
     const buffers = [];
 
     try {
-      if (statusCode === 200) {
-        for await (const chunk of resp) {
-          buffers.push(chunk);
-        }
-
-        const data = Buffer.concat(buffers).toString();
-
-        // parse to JSON the string data
-        const parseData: [Countries] = JSON.parse(data);
-
-        const [country] = parseData;
-        // parse the country data to be send
-        const {
-          name: { common: countryName },
-          capital,
-          region,
-          flag,
-        } = country;
-
-        res.status(200).json({
-          countryName,
-          capital,
-          region,
-          flag,
-        });
-      } else {
-        throw new Error("The country given don't exist");
+      for await (const chunk of resp) {
+        buffers.push(chunk);
       }
+
+      const data = Buffer.concat(buffers).toString();
+
+      // parse to JSON the string data
+      const parseData: [Countries] = JSON.parse(data);
+
+      const [country] = parseData;
+      // parse the country data to be send
+      const {
+        name: { common: countryName },
+        capital,
+        region,
+        flag,
+      } = country;
+
+      res.status(200).json({
+        countryName,
+        capital,
+        region,
+        flag,
+      });
     } catch (error) {
-      res.status(statusCode).json({ error: error.message });
+      res.status(404).send({ message: "The country given don't exist" });
     }
   });
 };
@@ -138,7 +134,7 @@ const getListCountriesByName = (req: Request, res: Response) => {
         throw new Error("There are no countries with that letters");
       }
     } catch (error) {
-      res.status(statusCode).json({ error: error.message });
+      res.status(404).send({ message: error.message });
     }
   });
 };
