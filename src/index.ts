@@ -27,5 +27,5 @@ app.use((_, res) => {
     message: error.message,
   });
 });
-// handle route error
+// listen to the port
 app.listen(PORT);

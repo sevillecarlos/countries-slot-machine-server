@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { URL_API } from "../config";
 import { Countries } from "../interfaces/countries.interface";
+import { filterCountriesName } from "../helpers";
 import https from "https";
 
 // find a country from a given name
@@ -121,10 +122,7 @@ const getListCountriesByName = (req: Request, res: Response) => {
       const parseData: [Countries] = JSON.parse(data);
 
       // filter the countries that match the given query
-      const filterCountries = parseData.filter(
-        (country: { name: { common: string } }) =>
-          country.name.common.toLowerCase().indexOf(countryQuery) !== -1
-      );
+      const filterCountries = filterCountriesName(parseData, countryQuery);
 
       // check a filters countries
       if (filterCountries.length !== 0) {
