@@ -15,20 +15,23 @@ const findCountryByName = async (req: Request, res: Response) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  try {
-    // get a specific country by given name
-    https.get(`${URL_API}/name/${countryQueryName}`, (resp: any) => {
-      let data: string = "";
-      let parseData: any = "";
+  // get a specific country by given name
+  https.get(`${URL_API}/name/${countryQueryName}`, async (resp) => {
+    const { statusCode } = resp;
+    const buffers = [];
 
-      resp.on("data", (chunk: string) => {
-        data += chunk;
-      });
-      resp.on("end", () => {
-        parseData = JSON.parse(data);
-      });
+    try {
+      if (statusCode === 200) {
+        for await (const chunk of resp) {
+          buffers.push(chunk);
+        }
 
-      if (parseData?.status !== 404) {
+        const data = Buffer.concat(buffers).toString();
+
+        // parse to JSON the string data
+        const parseData: [Countries] = JSON.parse(data);
+        console.log(parseData);
+
         const [country]: [Countries] = parseData;
         // parse the country data to be send
         const {
@@ -45,21 +48,23 @@ const findCountryByName = async (req: Request, res: Response) => {
           flag,
         });
       } else {
-        throw new Error("Country");
+        throw new Error("The country given don't exist");
       }
-    });
-    // throw Error("The country don't exist");
-  } catch (error) {
-    res.status(500).json({ error });
-  }
+    } catch (error) {
+      res.status(statusCode).json({ error: error.message });
+    }
+  });
 };
 
 // all countries
 const getAllCountries = async (_: Request, res: Response) => {
-  try {
-    // get all countries
-    https.get(`${URL_API}/all/`, async (resp) => {
-      const buffers = [];
+  // get all countries
+  https.get(`${URL_API}/all/`, async (resp) => {
+    const { statusCode } = resp;
+
+    const buffers = [];
+
+    try {
       for await (const chunk of resp) {
         buffers.push(chunk);
       }
@@ -76,12 +81,11 @@ const getAllCountries = async (_: Request, res: Response) => {
         flag: country.flag,
       }));
 
-      res.send(infoCountries);
-      res.end();
-    });
-  } catch (error) {
-    throw error.message;
-  }
+      res.json(infoCountries);
+    } catch (error) {
+      res.status(statusCode).json({ error: error.message });
+    }
+  });
 };
 
 const getListCountriesByName = (req: Request, res: Response) => {
@@ -95,13 +99,11 @@ const getListCountriesByName = (req: Request, res: Response) => {
   }
   // find the list of country that match the query
   https.get(`${URL_API}/all`, async (resp) => {
-    const { statusCode } = res;
-
+    const { statusCode } = resp;
     let error;
-
+    // check if the api get response
     if (statusCode !== 200) {
-      error = new Error(`Failed to make the request,
-      Status Code: ${statusCode}`);
+      error = new Error(`Failed to make the request`);
     }
 
     if (error) {
@@ -109,36 +111,38 @@ const getListCountriesByName = (req: Request, res: Response) => {
     }
 
     const buffers = [];
-    for await (const chunk of resp) {
-      buffers.push(chunk);
+
+    try {
+      for await (const chunk of resp) {
+        buffers.push(chunk);
+      }
+      const data = Buffer.concat(buffers).toString();
+      // parse to JSON the string data
+      const parseData: [Countries] = JSON.parse(data);
+
+      // filter the countries that match the given query
+      const filterCountries = parseData.filter(
+        (country: { name: { common: string } }) =>
+          country.name.common.toLowerCase().indexOf(countryQuery) !== -1
+      );
+
+      // check a filters countries
+      if (filterCountries.length !== 0) {
+        // parse the country data to be send
+        const infoCountries = filterCountries.map((country: any) => ({
+          countryName: country.name.common,
+          capital: country.capital,
+          region: country.region,
+          flag: country.flag,
+        }));
+
+        res.status(200).json(infoCountries);
+      } else {
+        throw new Error("There are no countries with that letters");
+      }
+    } catch (error) {
+      res.status(statusCode).json({ error: error.message });
     }
-    const data = Buffer.concat(buffers).toString();
-
-    // parse to JSON the string data
-    const parseData: [Countries] = JSON.parse(data);
-    
-    // filter the countries that match the given query
-    const filterCountries = parseData.filter(
-      (country: { name: { common: string } }) =>
-        country.name.common.toLowerCase().indexOf(countryQuery) !== -1
-    );
-
-    // check a filters countries
-    if (filterCountries.length !== 0) {
-      // parse the country data to be send
-      const infoCountries = filterCountries.map((country: any) => ({
-        countryName: country.name.common,
-        capital: country.capital,
-        region: country.region,
-        flag: country.flag,
-      }));
-
-      res.status(200).json(infoCountries);
-    } else {
-      res.status(500).json({ reason: "The country don't exist" });
-    }
-
-    res.end();
   });
 };
 
