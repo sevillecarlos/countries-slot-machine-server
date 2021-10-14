@@ -18,7 +18,6 @@ const findCountryByName = async (req: Request, res: Response) => {
 
   // get a specific country by given name
   https.get(`${URL_API}/name/${countryQueryName}`, async (resp) => {
-    const { statusCode } = resp;
     const buffers = [];
 
     try {
