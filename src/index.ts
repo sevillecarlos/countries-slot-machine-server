@@ -1,5 +1,8 @@
 import express from "express";
+// routes
 import countriesRoute from "./routes/api/countries";
+import slotMachineRoute from "./routes/api/slot-machine";
+
 import dotenv from "dotenv";
 import cors from "cors";
 // configure the ENVIROMENT VARIABLE
@@ -18,7 +21,7 @@ app.get("/", (_, res) => {
 });
 
 // set routes to the server
-app.use(countriesRoute);
+app.use(countriesRoute).use(slotMachineRoute);
 
 // handle route error
 app.use((_, res) => {
