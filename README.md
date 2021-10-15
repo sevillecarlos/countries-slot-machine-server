@@ -2,7 +2,7 @@
 > The server for the Countries & Slot Machine app.
 # Built
 ## Development Technologies
-![](https://img.shields.io/badge/Back--End-Express.js-gray)
+![](https://img.shields.io/badge/Back--End-Express.js-green)
 ![](https://img.shields.io/badge/Back--End-NodeJS-green)
 ![](https://img.shields.io/badge/Programming--Language-TypeScript-blue)
 
